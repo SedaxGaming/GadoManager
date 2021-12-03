@@ -6,6 +6,7 @@ import com.gadomanager.gadomanager.classes.Alimentos;
 import com.gadomanager.gadomanager.classes.Bovinos;
 import com.gadomanager.gadomanager.classes.Medicamentos;
 import com.gadomanager.gadomanager.classes.Racas;
+import com.gadomanager.gadomanager.classes.Rebanhos;
 import com.gadomanager.gadomanager.classes.Usuarios;
 import com.gadomanager.gadomanager.classes.Vacina;
 import com.gadomanager.gadomanager.classes.Veterinario;
@@ -62,6 +63,10 @@ public class confirmExcluirController {
     		labelClass.setText(texto);
     	}else if (classobj instanceof Racas) {
     		String texto = "Nome: " + ((Racas) classobj).getNomeRaca() + "\n";
+    		labelClass.setText(texto);
+    	}else if (classobj instanceof Rebanhos) {
+    		String texto = "Nome: " + ((Rebanhos) classobj).getNome() + "\n";
+    		texto += "Descrição:" + ((Rebanhos) classobj).getDescricao() +"\n";
     		labelClass.setText(texto);
     	}
     }

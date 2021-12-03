@@ -15,6 +15,7 @@ import com.gadomanager.gadomanager.classes.Bovinos;
 import com.gadomanager.gadomanager.classes.Medicamentos;
 import com.gadomanager.gadomanager.classes.Racas;
 import com.gadomanager.gadomanager.classes.Racoes;
+import com.gadomanager.gadomanager.classes.Rebanhos;
 import com.gadomanager.gadomanager.classes.Usuarios;
 import com.gadomanager.gadomanager.classes.Vacina;
 import com.gadomanager.gadomanager.classes.Veterinario;
@@ -22,6 +23,7 @@ import com.gadomanager.gadomanager.controllers.filtros.confirmExcluirController;
 import com.gadomanager.gadomanager.controllers.filtros.filtroBovinoController;
 import com.gadomanager.gadomanager.controllers.filtros.filtroMedicamentoController;
 import com.gadomanager.gadomanager.controllers.filtros.filtroRacoesController;
+import com.gadomanager.gadomanager.controllers.filtros.filtroRebanhoController;
 import com.gadomanager.gadomanager.controllers.filtros.filtroUsuarioController;
 import com.gadomanager.gadomanager.controllers.filtros.filtroVacinaController;
 import com.gadomanager.gadomanager.controllers.filtros.filtroVeterinarioController;
@@ -29,6 +31,7 @@ import com.gadomanager.gadomanager.repos.AlimentoRepository;
 import com.gadomanager.gadomanager.repos.MedicamentoRepository;
 import com.gadomanager.gadomanager.repos.RacasRepository;
 import com.gadomanager.gadomanager.repos.RacoesRepository;
+import com.gadomanager.gadomanager.repos.RebanhoRepository;
 import com.gadomanager.gadomanager.repos.VacinaRepository;
 import com.gadomanager.gadomanager.repos.VeterinarioRepository;
 import com.gadomanager.gadomanager.utils.DAOHibernate;
@@ -75,6 +78,9 @@ public class consultaController {
 	private VeterinarioRepository vetRepo;
 	
 	@Autowired
+	private RebanhoRepository rebRepo;
+	
+	@Autowired
 	private RacoesRepository racRepo;
 	
 	@FXML
@@ -100,6 +106,9 @@ public class consultaController {
 
 	@FXML
 	private MenuItem menuConsultaBovino;
+	
+	@FXML
+	private MenuItem menuConsultaRebanhos;
 
 	@FXML
 	private MenuItem menuConsultaUsuarios;
@@ -416,6 +425,43 @@ public class consultaController {
 
 		return list;
 	}
+	
+	@FXML
+	public void rebanhosClick() {
+		setCurrentPerspective("Rebanhos");
+		menuConsulta.setText(currentPerspective);
+
+		btnEditar.setDisable(false);
+		btnExcluir.setDisable(false);
+		
+		setPerspectiveList(getRebanhos());
+		consultarRebanhos();
+	}
+	
+	private void consultarRebanhos() {
+
+		tableConsulta.getColumns().clear();
+		tableConsulta.getItems().clear();
+		tableConsulta.setItems(getPerspectiveList());
+
+		// Colunas
+		TableColumn<Object, String> descCol = new TableColumn<>("descricao");
+		descCol.setCellValueFactory(new PropertyValueFactory<>("descricao"));
+		tableConsulta.getColumns().add(descCol);
+		TableColumn<Object, String> nomeCol = new TableColumn<>("nome");
+		nomeCol.setCellValueFactory(new PropertyValueFactory<>("nome"));
+		tableConsulta.getColumns().add(nomeCol);
+	}
+
+	private ObservableList<Object> getRebanhos() {
+		ObservableList<Object> list = FXCollections.observableArrayList();
+
+		DAOHibernate<Rebanhos> daoReb= new DAOHibernate<>(Rebanhos.class);
+		List<Rebanhos> query = daoReb.getAll();
+		list.addAll(query);
+
+		return list;
+	}
 
 	@FXML
 	public void veterinariosClick() {
@@ -605,6 +651,25 @@ public class consultaController {
 				consultarVacinas();
 			} else {
 				consultarVacinas();
+			}
+		}
+		
+		if (perspectiva == "Rebanhos") {
+			fxmlFiltro = getClass().getResource("/fxml/FiltroDeRebanhos.fxml");
+			loader.setLocation(fxmlFiltro);
+			Parent filtroP = loader.load();
+			Scene filtroScene = new Scene(filtroP);
+			filtroRebanhoController filtroRebanhoController = loader.getController();
+			filtroRebanhoController.setConsultaController(this);
+			filtroStage.initModality(Modality.APPLICATION_MODAL);
+			filtroStage.setScene(filtroScene);
+			filtroStage.showAndWait();
+
+			if (getPerspectiveList() == null) {
+				setPerspectiveList(getRebanhos());
+				consultarRebanhos();
+			} else {
+				consultarRebanhos();
 			}
 		}
 	
@@ -797,7 +862,24 @@ public class consultaController {
 			setPerspectiveList(getVacinas());
 			consultarVacinas();
 			
-		}else if (perspectiva == "Veterinarios") {
+		}else if (perspectiva == "Rebanhos") {
+			Rebanhos rebanho = (Rebanhos) tableConsulta.getItems().get(index);
+
+			fxmledit = getClass().getResource("/fxml/CadastroDeRebanho.fxml");
+			loader.setLocation(fxmledit);
+			Parent editP = loader.load();
+			Scene editScene = new Scene(editP);
+			cadastroRebanhoController cadastroRebanhoController = loader.getController();
+			cadastroRebanhoController.setEdit(true);
+			cadastroRebanhoController.populateFields(rebanho);
+			editStage.initModality(Modality.APPLICATION_MODAL);
+			editStage.setScene(editScene);
+			editStage.showAndWait();
+			setPerspectiveList(getRebanhos());
+			consultarRebanhos();
+			
+		}
+		else if (perspectiva == "Veterinarios") {
 			Veterinario vet = (Veterinario) tableConsulta.getItems().get(index);
 
 			fxmledit = getClass().getResource("/fxml/CadastroDeVeterinario.fxml");
@@ -905,6 +987,20 @@ public class consultaController {
 				consultarVacinas();
 			}
 		}
+		if (perspectiva == "Rebanhos") {
+			Rebanhos vac = (Rebanhos) tableConsulta.getItems().get(index);
+		 	DAOHibernate<Rebanhos> daoV = new DAOHibernate<>(Rebanhos.class);
+			Rebanhos vacDel = daoV.getAllById(vac.getIdRebanho());
+
+			confirmExcluirController.setClass(vacDel);
+			dialogStage.showAndWait();
+			Boolean excluir = confirmExcluirController.returnDelete();
+			if (excluir) {
+				daoV.beginTransaction().delete(vacDel).commitTransaction().closeAll();
+				setPerspectiveList(getRebanhos());
+				consultarRebanhos();
+			}
+		}
 		if (perspectiva == "Alimentação") {
 			Alimentos alimento = (Alimentos) tableConsulta.getItems().get(index);
 			
@@ -992,6 +1088,14 @@ public class consultaController {
 		setPerspectiveList(list);
 		consultarVacinas();
 	}
+	 else if (currentPerspective == "Rebanhos") {
+			List<Rebanhos> query = Streamable.of(rebRepo.search(chave)).toList();
+			ObservableList<Object> list = FXCollections.observableArrayList();
+			
+			list.addAll(query);
+			setPerspectiveList(list);
+			consultarRebanhos();
+		}
 	 else if (currentPerspective == "Veterinarios") {
 		List<Veterinario> query = Streamable.of(vetRepo.search(chave)).toList();
 		ObservableList<Object> list = FXCollections.observableArrayList();

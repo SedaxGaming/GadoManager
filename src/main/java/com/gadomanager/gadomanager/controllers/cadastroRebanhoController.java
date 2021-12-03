@@ -20,6 +20,23 @@ public class cadastroRebanhoController {
 
 	@FXML
 	private Button btnCancelar;
+	
+	private Rebanhos rebanho;
+	
+	public void populateFields(Rebanhos reb) {
+
+		setRebanho(reb);
+
+		txtADescricao.setText(reb.getDescricao());
+		txtNome.setText(reb.getNome());
+
+	}	
+	
+	public void setRebanho(Rebanhos rebanho) {
+		this.rebanho = rebanho;
+	}
+
+	private Boolean editMode = false;
 
 	@FXML
 	private TextField txtNome;
@@ -28,6 +45,14 @@ public class cadastroRebanhoController {
 	private TextArea txtADescricao;
 
 	private Usuarios user;
+	
+	public void setEdit(boolean EditMode) {
+		if (EditMode) {
+			this.editMode = true;
+		} else {
+			this.editMode = false;
+		}
+	}
 
 	public Usuarios getUser() {
 		return user;
@@ -36,9 +61,38 @@ public class cadastroRebanhoController {
 	public void setUser(Usuarios user) {
 		this.user = user;
 	}
+	
+	public Rebanhos getRebanho() {
+		return rebanho;
+	}
+
 
 	@FXML
 	public void salvar() throws Exception {
+		
+		if (editMode) {
+
+			rebanho = this.getRebanho();
+
+			DAOHibernate<Rebanhos> daoV = new DAOHibernate<>(Rebanhos.class);
+
+			Rebanhos rebanhosEdit = daoV.getAllById(rebanho.getIdRebanho());
+
+			String desc = txtADescricao.getText();
+			rebanhosEdit.setDescricao(desc);
+			String nome = txtNome.getText();
+			rebanhosEdit.setNome(nome);
+			
+			daoV.beginTransaction().update(rebanhosEdit).commitTransaction().closeAll();
+
+			Stage window = (Stage) btnCancelar.getScene().getWindow();
+			window.close();
+			
+			Notifications.create().title("Alerta").text("Rebanho editada com sucesso").showConfirm();
+			
+
+		}else { 
+		
 
 		String nome = txtNome.getText();
 		String descricao = txtADescricao.getText();
@@ -58,7 +112,7 @@ public class cadastroRebanhoController {
 			txtNome.clear();
 			txtADescricao.clear();
 		}
-	}
+	}	}
 
 	@FXML
 	public void cancelar() {
